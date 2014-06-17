@@ -1,0 +1,27 @@
+{
+  "name": "FileSaver.js",
+  "version": "v1.0.0",
+  "homepage": "https://github.com/educarm/FileSaver.js",
+  "description": "FileSaver.js is the solution to saving files on the client-side",
+  "keywords": [
+    "javascript"
+  ],
+  "license": "MIT",
+  "main": ["./FileSaver.js"],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "config",
+    "lib",
+    "scripts",
+    "src",
+    "test",
+    "workbench",
+    "conf.js",
+    "GruntFile.js"
+  ],
+  "dependencies": {
+    "jquery": "educarm/Blob.js#v1.0.0"
+  }
+}
