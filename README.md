@@ -86,6 +86,9 @@ Note: The standard HTML5 `canvas.toBlob()` method is not available in all browse
   [4]: https://github.com/eligrey/Blob.js
   [5]: https://github.com/eligrey/canvas-toBlob.js
 
+Ref: http://updates.html5rocks.com/2011/08/Saving-generated-files-on-the-client-side
+
+
 Contributing
 ------------
 
