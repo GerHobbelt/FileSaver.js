@@ -1,0 +1,47 @@
+{
+  "name": "filesaver.js",
+  "version": "0.1.0",
+  "description": "An HTML5 saveAs() FileSaver implementation",
+  "main": "FileSaver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mWater/FileSaver.js.git"
+  },
+  "keywords": [
+    "filesaver",
+    "saveas",
+    "blob"
+  ],
+  "author": {
+    "name": "Eli Grey"
+  },
+  "license": "MIT/X11",
+  "bugs": {
+    "url": "https://github.com/eligrey/FileSaver.js/issues"
+  },
+  "homepage": "https://github.com/mWater/FileSaver.js",
+  "gitHead": "b8054a26d13dd700a948735fc05e952c3b7db6c5",
+  "_id": "filesaver.js@0.1.0",
+  "_shasum": "e8fcd7d2b56329329a609ccb27caf0c0deeac1cc",
+  "_from": "filesaver.js@~0.1.0",
+  "_npmVersion": "1.4.13",
+  "_npmUser": {
+    "name": "grassick",
+    "email": "clayton@mwater.co"
+  },
+  "maintainers": [
+    {
+      "name": "grassick",
+      "email": "clayton@mwater.co"
+    }
+  ],
+  "dist": {
+    "shasum": "e8fcd7d2b56329329a609ccb27caf0c0deeac1cc",
+    "tarball": "http://registry.npmjs.org/filesaver.js/-/filesaver.js-0.1.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/filesaver.js/-/filesaver.js-0.1.0.tgz"
+}
