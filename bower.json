@@ -1,10 +1,10 @@
 {
   "name": "FileSaver.js",
   "main": "FileSaver.js",
-  "version": "0.0.0",
-  "homepage": "https://github.com/Arabidopsis-Information-Portal/FileSaver.js",
+  "version": "0.0.2",
+  "homepage": "https://github.com/eligrey/FileSaver.js",
   "authors": [
-    "Steve Mock <mocksteve@gmail.com>"
+    "Eli Grey <me@eligrey.com>"
   ],
   "license": "MIT",
   "private": true,
