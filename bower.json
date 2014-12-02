@@ -1,0 +1,14 @@
+{
+  "name": "FileSaver.js",
+  "version": "1.0",
+  "main": "FileSaver.js",
+  "dependencies": {},
+  "readme": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mawiza/FileSaver.js.git"
+  },
+  "ignore": [
+    "bower.json"
+  ]
+}
