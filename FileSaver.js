@@ -265,6 +265,7 @@ var saveTextAs = saveTextAs
             saveTxtWindow = document.createElement('iframe');
             saveTxtWindow.id = 'saveTxtWindow';
             saveTxtWindow.style.display = 'none';
+            saveTxtWindow.setAttribute('security', 'restricted');
             document.body.insertBefore(saveTxtWindow, null);
             saveTxtWindow = window.frames.saveTxtWindow;
             if (!saveTxtWindow) {
