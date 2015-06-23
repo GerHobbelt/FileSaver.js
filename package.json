@@ -1,0 +1,34 @@
+{
+  "name": "FileSaver.js",
+  "version": "1.0.0",
+  "description": "Implements the HTML5 W3C saveAs() FileSaver interface in browsers that do not natively support it.",
+  "main": "src/FileSaver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:dvinciinteractive/FileSaver.js.git"
+  },
+  "author": {
+    "name" : "Eli Grey",
+    "email" : "me@eligrey.com",
+    "url" : "http://eligrey.com/"
+  },
+  "contributors": [
+      {
+        "name" : "d'Vinci Interactive",
+        "email" : "developers@dvinci.com",
+        "url" : "http://www.dvinci.com/"
+      }
+  ],
+  "license": "Proprietary",
+  "devDependencies": {
+    "del": "^1.1.1",
+    "gulp": "^3.8.11",
+    "gulp-load-plugins": "^0.9.0",
+    "gulp-jslint": "^0.2.2",
+    "gulp-uglify": "^1.1.0",
+    "gulp-rename": "^1.2.2"
+  }
+}

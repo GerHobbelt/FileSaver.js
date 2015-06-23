@@ -1,0 +1,22 @@
+{
+  "name": "FileSaver.js",
+  "version": "1.0.0",
+  "authors": [
+    "Eli Grey <me@eligrey.com>",
+    "d'Vinci Interactive <developers@dvinci.com>"
+  ],
+  "description": "Implements the HTML5 W3C saveAs() FileSaver interface in browsers that do not natively support it.",
+  "main": "src/FileSaver.js",
+  "license": "MIT",
+  "homepage": "https://github.com/dvinciinteractive/FileSaver.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "Blob.js": "git@github.com:dvinciinteractive/Blob.js.git#~1.0.0"
+  }
+}
