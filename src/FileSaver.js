@@ -309,4 +309,4 @@ var saveTextAs = saveTextAs
         saveTxtWindow.close();
         return retValue;
     }
-})
+});
