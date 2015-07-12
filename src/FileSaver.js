@@ -90,70 +90,8 @@
       return saveUsingObjectURLs();
     }
 
-    fsMinSize += blob.size;
+    return saveUsingFyleSystem();
 
-    reqFs(view.TEMPORARY, fsMinSize, abortable(function (fs) {
-      fs.root.getDirectory('saved', createIfNotFound, abortable(function (dir) {
-        dir.getFile(name, {create: false}, abortable(function (file) {
-          // delete file if it already exists
-          file.remove(function() {
-            save();
-          });
-        }), abortable(function (ex) {
-          if (ex.name === 'NotFoundError') {
-            save();
-          } else {
-            saveUsingObjectURLs();
-          }
-        }));
-
-        /////////////
-
-        function save() {
-          dir.getFile(name, createIfNotFound, abortable(function (file) {
-            file.createWriter(abortable(function (writer) {
-              writer.onwriteend = onWriterEnd;
-              writer.onerror = onError;
-
-              bindEventsToWriter();
-
-              writer.write(blob);
-              filesaver.abort = onAbort;
-              filesaver.readyState = filesaver.WRITING;
-
-              ////////////
-
-              function onWriterEnd(event) {
-                targetView.location.href = file.toURL();
-                filesaver.readyState = filesaver.DONE;
-                dispatch(filesaver, 'writeend', event);
-                revoke(file);
-              }
-
-              function onError() {
-                var error = writer.error;
-                if (error.code !== error.ABORT_ERR) {
-                  saveUsingObjectURLs();
-                }
-              }
-
-              function bindEventsToWriter() {
-                'writestart progress write abort'.split(' ').forEach(function (event) {
-                  writer['on' + event] = filesaver['on' + event];
-                });
-              }
-
-              function onAbort() {
-                writer.abort();
-                filesaver.readyState = filesaver.DONE;
-              }
-
-            }), saveUsingObjectURLs);
-
-          }), saveUsingObjectURLs);
-        }
-      }), saveUsingObjectURLs);
-    }), saveUsingObjectURLs);
 
     ////////////////
 
@@ -195,6 +133,89 @@
 
       if (type === forceSaveableType || webkitReqFs) {
         targetView = view;
+      }
+    }
+
+
+    function saveUsingFyleSystem() {
+      fsMinSize += blob.size;
+
+      reqFs(view.TEMPORARY, fsMinSize, abortable(getFyleSystem), saveUsingObjectURLs);
+
+      ////////////
+
+      function getFyleSystem(fs) {
+        fs.root.getDirectory('temp', createIfNotFound, abortable(getTempDirectory), saveUsingObjectURLs);
+      }
+
+      function getTempDirectory(dir) {
+        dir.getFile(name, { create: false }, abortable(getExistentFileForRemove), abortable(existentFileNotFound) );
+
+        /////////////
+
+        function getExistentFileForRemove(file) {
+          // delete file if it already exists
+          file.remove(function() {
+            save();
+          });
+        }
+
+        function existentFileNotFound(ex) {
+          if (ex.name === 'NotFoundError') {
+            save();
+          } else {
+            saveUsingObjectURLs();
+          }
+        }
+
+
+        function save() {
+          dir.getFile(name, createIfNotFound, abortable(getFileForWrite), saveUsingObjectURLs);
+        }
+
+        function getFileForWrite(file) {
+          file.createWriter(abortable(createWriter), saveUsingObjectURLs);
+
+          ////////
+
+          function createWriter(writer) {
+            writer.onwriteend = onWriterEnd;
+            writer.onerror = onError;
+
+            bindEventsToWriter();
+
+            writer.write(blob);
+            filesaver.abort = onAbort;
+            filesaver.readyState = filesaver.WRITING;
+
+            ////////////
+
+            function onWriterEnd(event) {
+              targetView.location.href = file.toURL();
+              filesaver.readyState = filesaver.DONE;
+              dispatch(filesaver, 'writeend', event);
+              revoke(file);
+            }
+
+            function onError() {
+              var error = writer.error;
+              if (error.code !== error.ABORT_ERR) {
+                saveUsingObjectURLs();
+              }
+            }
+
+            function bindEventsToWriter() {
+              'writestart progress write abort'.split(' ').forEach(function (event) {
+                writer['on' + event] = filesaver['on' + event];
+              });
+            }
+
+            function onAbort() {
+              writer.abort();
+              filesaver.readyState = filesaver.DONE;
+            }
+          }
+        }
       }
     }
 
@@ -254,12 +275,12 @@
       setTimeout(revoker, arbitraryRevokeTimeout);
     }
 
-    //TODO test if latedef is working properly
+    ///////////
+
     function revoker() {
       if (typeof file === 'string') { // file is an object URL
         getURL().revokeObjectURL(file);
       } else { // file is a File
-        console.log('oi?');
         file.remove(function(){});
       }
     }
