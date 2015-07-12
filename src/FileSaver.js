@@ -38,9 +38,9 @@
   // https://github.com/eligrey/FileSaver.js/commit/485930a#commitcomment-8768047
   // for the reasoning behind the timeout and revocation flow
   var arbitraryRevokeTimeout = 500;
-  var FSProto = FileSaver.prototype;
   var setImmediate = view.setImmediate || view.setTimeout;
 
+  var FSProto = FileSaver.prototype;
   FSProto.abort = fileSaverAbort;
   FSProto.INIT = 0;
   FSProto.WRITING = 1;
@@ -78,33 +78,15 @@
     filesaver.readyState = filesaver.INIT;
     name = name || 'download';
 
-    if (canUseSaveLink) {
+    if (false &&  canUseSaveLink) {
       return saveUsingLinkElement();
     }
 
-    // Object and web filesystem URLs have a problem saving in Google Chrome when
-    // viewed in a tab, so I force save with application/octet-stream
-    // http://code.google.com/p/chromium/issues/detail?id=91158
-    // Update: Google errantly closed 91158, I submitted it again:
-    // https://code.google.com/p/chromium/issues/detail?id=389642
-    if (view.chrome && type && type !== forceSaveableType) {
-      var slice = blob.slice || blob.webkitSlice;
-      blob = slice.call(blob, 0, blob.size, forceSaveableType);
-      blobChanged = true;
-    }
+    fixChromeSaveableType();
+    fixWebKitDownload();
 
-    // Since I can't be sure that the guessed media type will trigger a download
-    // in WebKit, I append .download to the filename.
-    // https://bugs.webkit.org/show_bug.cgi?id=65440
-    if (webkitReqFs && name !== 'download') {
-      name += '.download';
-    }
 
-    if (type === forceSaveableType || webkitReqFs) {
-      targetView = view;
-    }
-
-    if (!reqFs) {
+    if ( ! reqFs) {
       return saveUsingObjectURLs();
     }
 
@@ -112,51 +94,64 @@
 
     reqFs(view.TEMPORARY, fsMinSize, abortable(function (fs) {
       fs.root.getDirectory('saved', createIfNotFound, abortable(function (dir) {
-        var save = function () {
-          dir.getFile(name, createIfNotFound, abortable(function (file) {
-            file.createWriter(abortable(function (writer) {
-              writer.onwriteend = function (event) {
-                targetView.location.href = file.toURL();
-                filesaver.readyState = filesaver.DONE;
-                dispatch(filesaver, 'writeend', event);
-                revoke(file);
-              };
-
-              writer.onerror = function () {
-                var error = writer.error;
-                if (error.code !== error.ABORT_ERR) {
-                  saveUsingObjectURLs();
-                }
-              };
-
-              'writestart progress write abort'.split(' ').forEach(function (event) {
-                writer['on' + event] = filesaver['on' + event];
-              });
-
-              writer.write(blob);
-
-              filesaver.abort = function () {
-                writer.abort();
-                filesaver.readyState = filesaver.DONE;
-              };
-
-              filesaver.readyState = filesaver.WRITING;
-            }), saveUsingObjectURLs);
-
-          }), saveUsingObjectURLs);
-        };
-
         dir.getFile(name, {create: false}, abortable(function (file) {
           // delete file if it already exists
-          file.remove();
-          save();
+          file.remove(function() {
+            save();
+          });
         }), abortable(function (ex) {
-          if (ex.code === ex.NOT_FOUND_ERR) {
+          if (ex.name === 'NotFoundError') {
             save();
           } else {
             saveUsingObjectURLs();
           }
         }));
+
+        /////////////
+
+        function save() {
+          dir.getFile(name, createIfNotFound, abortable(function (file) {
+            file.createWriter(abortable(function (writer) {
+              writer.onwriteend = onWriterEnd;
+              writer.onerror = onError;
+
+              bindEventsToWriter();
+
+              writer.write(blob);
+              filesaver.abort = onAbort;
+              filesaver.readyState = filesaver.WRITING;
+
+              ////////////
+
+              function onWriterEnd(event) {
+                targetView.location.href = file.toURL();
+                filesaver.readyState = filesaver.DONE;
+                dispatch(filesaver, 'writeend', event);
+                revoke(file);
+              }
+
+              function onError() {
+                var error = writer.error;
+                if (error.code !== error.ABORT_ERR) {
+                  saveUsingObjectURLs();
+                }
+              }
+
+              function bindEventsToWriter() {
+                'writestart progress write abort'.split(' ').forEach(function (event) {
+                  writer['on' + event] = filesaver['on' + event];
+                });
+              }
+
+              function onAbort() {
+                writer.abort();
+                filesaver.readyState = filesaver.DONE;
+              }
+
+            }), saveUsingObjectURLs);
+
+          }), saveUsingObjectURLs);
+        }
       }), saveUsingObjectURLs);
     }), saveUsingObjectURLs);
 
@@ -173,6 +168,34 @@
         revoke(objectUrl);
         filesaver.readyState = filesaver.DONE;
       }, 0);
+    }
+
+    function fixChromeSaveableType() {
+      /*
+       * Object and web filesystem URLs have a problem saving in Google Chrome when
+       * viewed in a tab, so I force save with application/octet-stream
+       * http://code.google.com/p/chromium/issues/detail?id=91158
+       * Update: Google errantly closed 91158, I submitted it again:
+       * https://code.google.com/p/chromium/issues/detail?id=389642
+       */
+      if (view.chrome && type && type !== forceSaveableType) {
+        var slice = blob.slice || blob.webkitSlice;
+        blob = slice.call(blob, 0, blob.size, forceSaveableType);
+        blobChanged = true;
+      }
+    }
+
+    function fixWebKitDownload() {
+      // Since I can't be sure that the guessed media type will trigger a download
+      // in WebKit, I append .download to the filename.
+      // https://bugs.webkit.org/show_bug.cgi?id=65440
+      if (webkitReqFs && name !== 'download') {
+        name += '.download';
+      }
+
+      if (type === forceSaveableType || webkitReqFs) {
+        targetView = view;
+      }
     }
 
     // on any filesys errors revert to saving with object URLs
@@ -236,7 +259,8 @@
       if (typeof file === 'string') { // file is an object URL
         getURL().revokeObjectURL(file);
       } else { // file is a File
-        file.remove();
+        console.log('oi?');
+        file.remove(function(){});
       }
     }
   }
