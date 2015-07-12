@@ -20,6 +20,8 @@
   "license": "MIT",
   "ignore": [
     "**/.*",
+    "!FileSaver.js",
+    "!FileSaver.min.js",
     "node_modules",
     "bower_components",
     "test",
