@@ -1,0 +1,16 @@
+{
+  "name": "FileSaver.js",
+  "version": "0.0.1",
+  "description": "An HTML5 saveAs() FileSaver implementation",
+  "main": "FileSaver.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/carlos-algms/FileSaver.js"
+  },
+  "author": "Carlos Gomes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/carlos-algms/FileSaver.js/issues"
+  },
+  "homepage": "https://github.com/carlos-algms/FileSaver.js"
+}
