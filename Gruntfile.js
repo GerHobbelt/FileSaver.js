@@ -23,7 +23,7 @@ function gruntConfig(grunt) {
       all: {
         src: [
           'Gruntfile.js',
-          'src/FileSaver.js'
+          'src/file-saver.js'
         ]
       },
       test: {
@@ -31,6 +31,24 @@ function gruntConfig(grunt) {
           jshintrc: 'test/.jshintrc'
         },
         src: ['test/spec/{,*/}*.js']
+      }
+    },
+
+
+    concat: {
+      options: {
+        separator: '\n'
+      },
+      dist: {
+        src: [
+          'src/header.txt',
+          'src/handle-ie.js',
+          'src/save-as.js',
+          'src/file-saver.js',
+          'src/utils.js',
+          'src/footer.txt'
+        ],
+        dest: 'FileSaver.js'
       }
     },
 
@@ -53,6 +71,8 @@ function gruntConfig(grunt) {
 
   });
 
-  grunt.registerTask('default', ['uglify']);
+  grunt.registerTask('default', ['build']);
+
+  grunt.registerTask('build', ['concat', 'uglify']);
 
 }

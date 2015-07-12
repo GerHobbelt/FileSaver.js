@@ -1,58 +1,3 @@
-
-(function (root, factory) {
-  'use strict';
-
-  if (typeof define === 'function' && define.amd) {
-    define([], function () { return factory(root); });
-  } else {
-    root.saveAs = root.saveAs || factory(root);
-  }
-
-})(this, function saveAsFactory(root, undefined) {
-  'use strict';
-
-if (root.navigator !== undefined) {
-
-  /*
-   * IE <10 is explicitly unsupported
-   */
-  if (/MSIE [1-9]\./.test(root.navigator.userAgent)) {
-    return;
-  }
-
-  /*
-   * IE 10+ (native saveAs)
-   */
-  if (root.navigator.msSaveOrOpenBlob) {
-    return function nativeIeSaveAs(blob, name) {
-      return root.navigator.msSaveOrOpenBlob(autoBom(blob), name);
-    };
-  }
-}
-
-
-// `self` is undefined in Firefox for Android content script context
-// while `this` is nsIContentFrameMessageManager
-// with an attribute `content` that corresponds to the window
-var view = root.self || root.window || root.content;
-var saveLinkElement = view.document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
-var canUseSaveLink = 'download' in saveLinkElement;
-var webkitReqFs = view.webkitRequestFileSystem;
-var reqFs = view.requestFileSystem || webkitReqFs || view.mozRequestFileSystem;
-var forceSaveableType = 'application/octet-stream';
-var fsMinSize = 0;
-
-// See https://code.google.com/p/chromium/issues/detail?id=375297#c7 and
-// https://github.com/eligrey/FileSaver.js/commit/485930a#commitcomment-8768047
-// for the reasoning behind the timeout and revocation flow
-var arbitraryRevokeTimeout = 500;
-var setImmediate = view.setImmediate || view.setTimeout;
-
-function saveAs(blob, name) {
-  return new FileSaver(blob, name);
-}
-
-
 var FSProto = FileSaver.prototype;
 FSProto.abort = fileSaverAbort;
 FSProto.INIT = 0;
@@ -82,7 +27,7 @@ function FileSaver(blob, name) {
   filesaver.readyState = filesaver.INIT;
   name = name || 'download';
 
-  if ( false && canUseSaveLink ) {
+  if ( canUseSaveLink ) {
     return saveUsingLinkElement();
   }
 
@@ -290,49 +235,3 @@ function dispatch(filesaver, eventTypes, event) {
     }
   }
 }
-
-
-function autoBom(blob) {
-  // prepend BOM for UTF-8 XML and text/* types (including HTML)
-  if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
-    return new Blob(['\ufeff', blob], {type: blob.type});
-  }
-
-  return blob;
-}
-
-// only get URL when necessary in case Blob.js hasn't overridden it yet
-function getURL() {
-  return view.URL || view.webkitURL || view;
-}
-
-function revoke(file) {
-  setTimeout(revoker, arbitraryRevokeTimeout);
-
-  ///////////
-
-  function revoker() {
-    if (typeof file === 'string') { // file is an object URL
-      getURL().revokeObjectURL(file);
-    } else { // file is a File
-      file.remove(function(){});
-    }
-  }
-}
-
-
-
-function throwOutside(ex) {
-  setImmediate(function () {
-    throw ex;
-  }, 0);
-}
-
-function triggerClickOnSaveLink() {
-  var event = new MouseEvent('click');
-  saveLinkElement.dispatchEvent(event);
-}
-
-
-  return saveAs;
-});
