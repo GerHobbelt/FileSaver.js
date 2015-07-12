@@ -72,7 +72,9 @@ FSProto.onwriteend = null;
 
 
 function FileSaver(blob, name) {
-  blob = autoBom(blob);
+  this.blob = blob = autoBom(blob);
+  this.saveUsingObjectURLs = saveUsingObjectURLs;
+  this.execSave = execSave;
 
   // First try a.download, then web filesystem, then object URLs
   var filesaver = this;
@@ -80,12 +82,12 @@ function FileSaver(blob, name) {
   var blobChanged = false;
   var objectUrl;
   var targetView;
-  var createIfNotFound = {create: true, exclusive: false};
+
 
   filesaver.readyState = filesaver.INIT;
   name = name || 'download';
 
-  if ( false && canUseSaveLink ) {
+  if ( canUseSaveLink ) {
     return saveUsingLinkElement();
   }
 
@@ -93,11 +95,11 @@ function FileSaver(blob, name) {
   fixWebKitDownload();
 
 
-  if ( ! reqFs) {
+  if ( ! reqFs ) {
     return saveUsingObjectURLs();
   }
 
-  return saveUsingFyleSystem();
+  return saveUsingFyleSystem(filesaver);
 
 
   ////////////////
@@ -144,89 +146,10 @@ function FileSaver(blob, name) {
   }
 
 
-  function saveUsingFyleSystem() {
-    fsMinSize += blob.size;
-
-    reqFs(view.TEMPORARY, fsMinSize, abortable(getFyleSystem), saveUsingObjectURLs);
-
-    ////////////
-
-    function getFyleSystem(fs) {
-      fs.root.getDirectory('temp', createIfNotFound, abortable(getTempDirectory), saveUsingObjectURLs);
-    }
-
-    function getTempDirectory(dir) {
-      dir.getFile(name, { create: false }, abortable(getExistentFileForRemove), abortable(existentFileNotFound) );
-
-      /////////////
-
-      function getExistentFileForRemove(file) {
-        // delete file if it already exists
-        file.remove(function() {
-          save();
-        });
-      }
-
-      function existentFileNotFound(ex) {
-        if (ex.name === 'NotFoundError') {
-          save();
-        } else {
-          saveUsingObjectURLs();
-        }
-      }
-
-
-      function save() {
-        dir.getFile(name, createIfNotFound, abortable(getFileForWrite), saveUsingObjectURLs);
-      }
-
-      function getFileForWrite(file) {
-        file.createWriter(abortable(createWriter), saveUsingObjectURLs);
-
-        ////////
-
-        function createWriter(writer) {
-          writer.onwriteend = onWriterEnd;
-          writer.onerror = onError;
-
-          bindEventsToWriter();
-
-          writer.write(blob);
-          filesaver.abort = onAbort;
-          filesaver.readyState = filesaver.WRITING;
-
-          ////////////
-
-          function onWriterEnd(event) {
-            execSave(file.toURL(), file, event);
-          }
-
-          function onError() {
-            var error = writer.error;
-            if (error.code !== error.ABORT_ERR) {
-              saveUsingObjectURLs();
-            }
-          }
-
-          function bindEventsToWriter() {
-            'writestart progress write abort'.split(' ').forEach(function (event) {
-              writer['on' + event] = filesaver['on' + event];
-            });
-          }
-
-          function onAbort() {
-            writer.abort();
-            filesaver.readyState = filesaver.DONE;
-          }
-        }
-      }
-    }
-  }
-
   // on any filesys errors revert to saving with object URLs
   function saveUsingObjectURLs() {
     // don't create more object URLs than needed
-    if (blobChanged || !objectUrl) {
+    if (blobChanged || ! objectUrl) {
       objectUrl = getURL().createObjectURL(blob);
     }
 
@@ -235,17 +158,23 @@ function FileSaver(blob, name) {
 
 
   function execSave(objectUrl, file, event) {
-    var newTab = view.open(objectUrl, '_blank');
-    if ( newTab === undefined ) {
-      /*
-       * Apple do not allow window.open
-       * see http://bit.ly/1kZffRI
-       */
-      view.location.href = objectUrl;
+
+    if( targetView ) {
+      targetView.location.href = objectUrl;
+    } else {
+      var newTab = view.open(objectUrl, '_blank');
+      if ( newTab === undefined ) {
+        /*
+         * Apple do not allow window.open
+         * see http://bit.ly/1kZffRI
+         */
+        view.location.href = objectUrl;
+      }
     }
 
 
     filesaver.readyState = filesaver.DONE;
+
     if( ! event ) {
       dispatchAll(filesaver);
     } else {
@@ -253,15 +182,6 @@ function FileSaver(blob, name) {
     }
 
     revoke(file || objectUrl);
-  }
-
-
-  function abortable(func) {
-    return function () {
-      if (filesaver.readyState !== filesaver.DONE) {
-        return func.apply(this, arguments);
-      }
-    };
   }
 
 }
@@ -291,6 +211,96 @@ function dispatch(filesaver, eventTypes, event) {
         throwOutside(ex);
       }
     }
+  }
+}
+
+
+function saveUsingFyleSystem(filesaver) {
+  fsMinSize += filesaver.blob.size;
+  var createIfNotFound = {create: true, exclusive: false};
+
+  reqFs(view.TEMPORARY, fsMinSize, abortable(getFyleSystem), filesaver.saveUsingObjectURLs);
+
+  ////////////
+
+  function getFyleSystem(fs) {
+    fs.root.getDirectory('temp', createIfNotFound, abortable(getTempDirectory), filesaver.saveUsingObjectURLs);
+  }
+
+  function getTempDirectory(dir) {
+    dir.getFile(name, { create: false }, abortable(getExistentFileForRemove), abortable(existentFileNotFound) );
+
+    /////////////
+
+    function getExistentFileForRemove(file) {
+      // delete file if it already exists
+      file.remove(function() {
+        save();
+      });
+    }
+
+    function existentFileNotFound(ex) {
+      if (ex.name === 'NotFoundError') {
+        save();
+      } else {
+        filesaver.saveUsingObjectURLs();
+      }
+    }
+
+    //////////
+
+    function save() {
+      dir.getFile(name, createIfNotFound, abortable(getFileForWrite), filesaver.saveUsingObjectURLs);
+    }
+
+    function getFileForWrite(file) {
+      file.createWriter(abortable(createWriter), filesaver.saveUsingObjectURLs);
+
+      ////////
+
+      function createWriter(writer) {
+        writer.onwriteend = onWriterEnd;
+        writer.onerror = onError;
+
+        bindEventsToWriter();
+
+        writer.write(blob);
+        filesaver.abort = onAbort;
+        filesaver.readyState = filesaver.WRITING;
+
+        ////////////
+
+        function onWriterEnd(event) {
+          filesaver.execSave(file.toURL(), file, event);
+        }
+
+        function onError() {
+          var error = writer.error;
+          if (error.code !== error.ABORT_ERR) {
+            filesaver.saveUsingObjectURLs();
+          }
+        }
+
+        function bindEventsToWriter() {
+          'writestart progress write abort'.split(' ').forEach(function (event) {
+            writer['on' + event] = filesaver['on' + event];
+          });
+        }
+
+        function onAbort() {
+          writer.abort();
+          filesaver.readyState = filesaver.DONE;
+        }
+      }
+    }
+  }
+
+  function abortable(func) {
+    return function () {
+      if (filesaver.readyState !== filesaver.DONE) {
+        return func.apply(this, arguments);
+      }
+    };
   }
 }
 

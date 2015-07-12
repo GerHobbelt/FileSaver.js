@@ -53,6 +53,7 @@ function gruntConfig(grunt) {
           'src/handle-ie.js',
           'src/save-as.js',
           'src/file-saver.js',
+          'src/file-system-saver.js',
           'src/utils.js',
           'src/footer.txt'
         ],
