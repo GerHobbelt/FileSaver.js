@@ -78,7 +78,7 @@
     filesaver.readyState = filesaver.INIT;
     name = name || 'download';
 
-    if (false &&  canUseSaveLink) {
+    if ( canUseSaveLink ) {
       return saveUsingLinkElement();
     }
 
@@ -191,10 +191,7 @@
             ////////////
 
             function onWriterEnd(event) {
-              targetView.location.href = file.toURL();
-              filesaver.readyState = filesaver.DONE;
-              dispatch(filesaver, 'writeend', event);
-              revoke(file);
+              execSave(file.toURL(), file, event);
             }
 
             function onError() {
@@ -226,20 +223,31 @@
         objectUrl = getURL().createObjectURL(blob);
       }
 
-      if (targetView) {
-        targetView.location.href = objectUrl;
-      } else {
-        var newTab = view.open(objectUrl, '_blank');
-        if (newTab === undefined && typeof safari !== 'undefined') {
-          //Apple do not allow window.open, see http://bit.ly/1kZffRI
-          view.location.href = objectUrl;
-        }
+      execSave(objectUrl);
+    }
+
+
+    function execSave(objectUrl, file, event) {
+      var newTab = view.open(objectUrl, '_blank');
+      if ( newTab === undefined ) {
+        /*
+         * Apple do not allow window.open
+         * see http://bit.ly/1kZffRI
+         */
+        view.location.href = objectUrl;
       }
 
+
       filesaver.readyState = filesaver.DONE;
-      dispatchAll(filesaver);
-      revoke(objectUrl);
+      if( ! event ) {
+        dispatchAll(filesaver);
+      } else {
+        dispatch(filesaver, 'writeend', event);
+      }
+
+      revoke(file || objectUrl);
     }
+
 
     function abortable(func) {
       return function () {
@@ -267,13 +275,9 @@
     dispatch(filesaver, 'abort');
   }
 
-  //TODO test revoke
+
   function revoke(file) {
-    if (view.chrome) {
-      return revoker();
-    } else {
-      setTimeout(revoker, arbitraryRevokeTimeout);
-    }
+    setTimeout(revoker, arbitraryRevokeTimeout);
 
     ///////////
 
