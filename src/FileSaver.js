@@ -79,18 +79,7 @@
     name = name || 'download';
 
     if (canUseSaveLink) {
-      objectUrl = getURL().createObjectURL(blob);
-      saveLinkElement.href = objectUrl;
-      saveLinkElement.download = name;
-
-      setImmediate(function () {
-        clickTrigger(saveLinkElement);
-        dispatchAll();
-        revoke(objectUrl);
-        filesaver.readyState = filesaver.DONE;
-      }, 0);
-
-      return;
+      return saveUsingLinkElement();
     }
 
     // Object and web filesystem URLs have a problem saving in Google Chrome when
@@ -116,7 +105,7 @@
     }
 
     if (!reqFs) {
-      return fsError();
+      return saveUsingObjectURLs();
     }
 
     fsMinSize += blob.size;
@@ -136,7 +125,7 @@
               writer.onerror = function () {
                 var error = writer.error;
                 if (error.code !== error.ABORT_ERR) {
-                  fsError();
+                  saveUsingObjectURLs();
                 }
               };
 
@@ -152,9 +141,9 @@
               };
 
               filesaver.readyState = filesaver.WRITING;
-            }), fsError);
+            }), saveUsingObjectURLs);
 
-          }), fsError);
+          }), saveUsingObjectURLs);
         };
 
         dir.getFile(name, {create: false}, abortable(function (file) {
@@ -165,21 +154,29 @@
           if (ex.code === ex.NOT_FOUND_ERR) {
             save();
           } else {
-            fsError();
+            saveUsingObjectURLs();
           }
         }));
-      }), fsError);
-    }), fsError);
+      }), saveUsingObjectURLs);
+    }), saveUsingObjectURLs);
 
     ////////////////
 
-    //TODO move dispatchAll() outside FileSaver
-    function dispatchAll() {
-      dispatch(filesaver, 'writestart progress write writeend'.split(' '));
+    function saveUsingLinkElement() {
+      objectUrl = getURL().createObjectURL(blob);
+      saveLinkElement.href = objectUrl;
+      saveLinkElement.download = name;
+
+      setImmediate(function () {
+        triggerClickOnSaveLink();
+        dispatchAll(filesaver);
+        revoke(objectUrl);
+        filesaver.readyState = filesaver.DONE;
+      }, 0);
     }
 
     // on any filesys errors revert to saving with object URLs
-    function fsError() {
+    function saveUsingObjectURLs() {
       // don't create more object URLs than needed
       if (blobChanged || !objectUrl) {
         objectUrl = getURL().createObjectURL(blob);
@@ -196,7 +193,7 @@
       }
 
       filesaver.readyState = filesaver.DONE;
-      dispatchAll();
+      dispatchAll(filesaver);
       revoke(objectUrl);
     }
 
@@ -218,6 +215,12 @@
     }
 
     return blob;
+  }
+
+  function fileSaverAbort() {
+    var filesaver = this;
+    filesaver.readyState = filesaver.DONE;
+    dispatch(filesaver, 'abort');
   }
 
   //TODO test revoke
@@ -245,6 +248,11 @@
   }
 
 
+  function dispatchAll(filesaver) {
+    dispatch(filesaver, 'writestart progress write writeend'.split(' '));
+  }
+
+
   function dispatch(filesaver, eventTypes, event) {
     eventTypes = [].concat(eventTypes);
     var i = eventTypes.length;
@@ -266,15 +274,10 @@
     }, 0);
   }
 
-  function clickTrigger(node) {
+  function triggerClickOnSaveLink() {
     var event = new MouseEvent('click');
-    node.dispatchEvent(event);
+    saveLinkElement.dispatchEvent(event);
   }
 
-  function fileSaverAbort() {
-    var filesaver = this;
-    filesaver.readyState = filesaver.DONE;
-    dispatch(filesaver, 'abort');
-  }
 });
 
