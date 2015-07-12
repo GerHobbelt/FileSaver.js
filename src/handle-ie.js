@@ -11,8 +11,11 @@ if (root.navigator !== undefined) {
    * IE 10+ (native saveAs)
    */
   if (root.navigator.msSaveOrOpenBlob) {
-    return function nativeIeSaveAs(blob, name) {
-      return root.navigator.msSaveOrOpenBlob(autoBom(blob), name);
-    };
+    return nativeIeSaveAs;
   }
+
+}
+
+function nativeIeSaveAs(blob, name) {
+  return root.navigator.msSaveOrOpenBlob(autoBom(blob), name);
 }

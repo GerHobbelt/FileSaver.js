@@ -14,6 +14,14 @@ function gruntConfig(grunt) {
 
   grunt.initConfig({
 
+    watch: {
+      sources: {
+        files: ['src/*'],
+        tasks: ['concat:sources', 'uglify:dist']
+      }
+    },
+
+
     // Make sure code styles are up to par and there are no obvious mistakes
     jshint: {
       options: {
@@ -23,7 +31,7 @@ function gruntConfig(grunt) {
       all: {
         src: [
           'Gruntfile.js',
-          'src/file-saver.js'
+          'src/*.js'
         ]
       },
       test: {
@@ -39,7 +47,7 @@ function gruntConfig(grunt) {
       options: {
         separator: '\n'
       },
-      dist: {
+      sources: {
         src: [
           'src/header.txt',
           'src/handle-ie.js',
