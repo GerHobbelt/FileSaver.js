@@ -18,11 +18,12 @@ function gruntConfig(grunt) {
     jshint: {
       options: {
         jshintrc: '.jshintrc'
+        //reporter: require('jshint-stylish')
       },
       all: {
         src: [
           'Gruntfile.js',
-          'FileSaver.js'
+          'src/FileSaver.js'
         ]
       },
       test: {

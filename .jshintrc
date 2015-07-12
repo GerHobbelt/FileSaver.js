@@ -8,7 +8,7 @@
   "eqeqeq": false,
   "immed": true,
   "indent": 2,
-  "latedef": false,
+  "latedef": "nofunc",
   "newcap": true,
   "noarg": true,
   "quotmark": "single",
@@ -18,9 +18,18 @@
   "trailing": true,
   "smarttabs": true,
   "globals": {
-    "angular": false,
-    "$": false,
-    "APP_NAME": false,
-    "PRODUCTION": false
-  }
+    "self": false,
+    "define": false
+  },
+
+  "mocha": true,
+  "nonew": true,
+  "enforceall": true,
+  "jquery": true,
+  "validthis": true,
+  "forin": true,
+  "noempty": true,
+  "nocomma": true,
+  "jasmine": true,
+  "nonbsp": true
 }

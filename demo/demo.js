@@ -1,15 +1,3 @@
-/*! FileSaver.js demo script
- *  2012-01-23
- *
- *  By Eli Grey, http://eligrey.com
- *  License: X11/MIT
- *    See LICENSE.md
- */
-
-/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/demo/demo.js */
-
-/*jshint laxbreak: true, laxcomma: true, smarttabs: true*/
-/*global saveAs, self*/
 
 (function(view) {
 "use strict";
