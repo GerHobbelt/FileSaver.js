@@ -93,7 +93,7 @@ Note: The standard HTML5 `canvas.toBlob()` method is not available in all browse
 [canvas-toBlob.js][6] is a cross-browser `canvas.toBlob()` that polyfills this.
 
 
-![Tracking image](//in.getclicky.com/100863755ns.gif)
+![Tracking image](https://in.getclicky.com/100863755ns.gif)
 
 
 Contributing
