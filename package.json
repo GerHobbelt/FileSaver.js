@@ -1,0 +1,21 @@
+{
+  "name": "@vk/filesaverjs",
+  "version": "0.2.0",
+  "description": "An HTML5 saveAs() FileSaver implementation",
+  "main": "FileSaver.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/verkkokauppacom/FileSaver.js.git"
+  },
+  "keywords": [
+    "filesaver",
+    "saveas",
+    "blob"
+  ],
+  "author": "Eli Grey",
+  "license": "MIT/X11",
+  "homepage": "https://github.com/verkkokauppacom/FileSaver.js",
+  "devDependencies": {
+    "uglifyjs": "^2.4.10"
+  }
+}
