@@ -100,7 +100,7 @@ Contributing
 The `FileSaver.js` distribution file is compiled with Uglify.js like so:
 
 ```bash
-uglifyjs FileSaver.js --mangle --comments /@source/ > FileSaver.min.js
+npm run build
 ```
 
 Please make sure you build a production version before submitting a pull request.
