@@ -79,7 +79,7 @@ var saveAs = saveAs || (function(view) {
 			}
 			return blob;
 		}
-		, FileSaver = function(blob, name, no_auto_bom) {
+		, FileSaver = function(blob, name, no_auto_bom, failureCallback) {
 			if (!no_auto_bom) {
 				blob = auto_bom(blob);
 			}
@@ -112,18 +112,26 @@ var saveAs = saveAs || (function(view) {
 					if (blob_changed || !object_url) {
 						object_url = get_URL().createObjectURL(blob);
 					}
-					if (target_view) {
-						target_view.location.href = object_url;
-					} else {
-						var new_tab = view.open(object_url, "_blank");
-						if (new_tab == undefined && is_safari) {
-							//Apple do not allow window.open, see http://bit.ly/1kZffRI
-							view.location.href = object_url
+					// if url callback specified then assume caller will handle download rather than changing the current window location.
+					if (failureCallback) {
+						failureCallback(object_url);
+					}
+					else {
+						if (target_view) {
+							target_view.location.href = object_url;
+						} else {
+							var new_tab = view.open(object_url, "_blank");
+							if (new_tab == undefined && is_safari) {
+								//Apple do not allow window.open, see http://bit.ly/1kZffRI
+								view.location.href = object_url
+							}
 						}
 					}
 					filesaver.readyState = filesaver.DONE;
 					dispatch_all();
-					revoke(object_url);
+					if (!failureCallback) { // don't revoke if the object_url is passed into callback.
+						revoke(object_url);
+					}
 				}
 				, abortable = function(func) {
 					return function() {
@@ -219,8 +227,8 @@ var saveAs = saveAs || (function(view) {
 			}), fs_error);
 		}
 		, FS_proto = FileSaver.prototype
-		, saveAs = function(blob, name, no_auto_bom) {
-			return new FileSaver(blob, name, no_auto_bom);
+		, saveAs = function(blob, name, no_auto_bom, failureCallback) {
+			return new FileSaver(blob, name, no_auto_bom, failureCallback);
 		}
 	;
 	// IE 10+ (native saveAs)
